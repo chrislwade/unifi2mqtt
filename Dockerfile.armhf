@@ -1,4 +1,4 @@
-FROM node:slim
+FROM arm32v7/node:slim
 
 COPY . /node
 
