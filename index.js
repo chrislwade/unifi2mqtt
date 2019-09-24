@@ -6,37 +6,35 @@ const pkg = require('./package.json');
 const log = require('yalm');
 const config = require('yargs')
     .env('UNIFI2MQTT')
-    .usage('Usage: $0 [options]')
-    .describe('a', 'unifi hostname or address')
-    .describe('p', 'unifi port')
-    .describe('c', 'unifi user')
-    .describe('s', 'unifi password')
-    .describe('w', 'unifi site')
-    .describe('k', 'allow ssl connections with invalid certs')
-    .describe('v', 'possible values: "error", "warn", "info", "debug"')
-    .describe('n', 'instance name. used as topic prefix')
-    .describe('u', 'mqtt broker url')
-    .describe('h', 'show help')
+    .usage(pkg.name + ' ' + pkg.version + '\n' + pkg.description + '\n\nUsage: $0 [options]')
+    .describe('verbosity', 'possible values: "error", "warn", "info", "debug"')
+    .describe('name', 'instance name. used as mqtt client id and as prefix for connected topic')
+    .describe('mqtt-url', 'mqtt broker url. See https://github.com/mqttjs/MQTT.js#connect-using-a-url')
+    .describe('unifi-host', 'unifi hostname or address')
+    .describe('unifi-port', 'unifi port')
+    .describe('unifi-user', 'unifi user')
+    .describe('unifi-password', 'unifi password')
+    .describe('unifi-site', 'allow ssl connections with invalid certs')
+    .describe('insecure', 'unifi site')
     .alias({
+        h: 'help',
+        n: 'name',
+        u: 'mqtt-url',
+        v: 'verbosity',
         a: 'unifi-host',
         p: 'unifi-port',
         c: 'unifi-user',
         s: 'unifi-password',
         w: 'unifi-site',
-        h: 'help',
-        n: 'name',
-        u: 'url',
-        v: 'verbosity',
         k: 'insecure'
     })
     .default({
-        a: '127.0.0.1',
-        p: 8443,
-        c: 'admin',
-        u: 'mqtt://127.0.0.1',
-        n: 'unifi',
-        v: 'info',
-        w: 'default'
+        'name': 'unifi',
+        'mqtt-url': 'mqtt://127.0.0.1',
+        'unifi-host': '127.0.0.1',
+        'unifi-port': 8443,
+        'unifi-user': 'admin',
+        'unifi-site': 'default'
     })
     .demand('unifi-password')
     .env()
@@ -61,7 +59,7 @@ const dataWifi = {};
 const idDevice = {};
 const dataDevice = {};
 
-log.info('mqtt trying to connect', config.url);
+log.info('mqtt trying to connect', config.mqttUrl);
 
 const mqtt = new MqttSmarthome(config.mqttUrl, {
     logger: log,
@@ -70,7 +68,7 @@ const mqtt = new MqttSmarthome(config.mqttUrl, {
 mqtt.connect();
 
 mqtt.on('connect', () => {
-    log.info('mqtt connected', config.url);
+    log.info('mqtt connected', config.mqttUrl);
     mqtt.publish(config.name + '/maintenance/online', true, {retain: true});
     mqtt.publish(config.name + '/maintenance/controller/online', unifiConnected, {retain: true});
 });
@@ -78,7 +76,7 @@ mqtt.on('connect', () => {
 mqtt.on('close', () => {
     if (mqttConnected) {
         mqttConnected = false;
-        log.info('mqtt closed ' + config.url);
+        log.info('mqtt closed ' + config.mqttUrl);
     }
 });
 
