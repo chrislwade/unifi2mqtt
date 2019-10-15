@@ -253,7 +253,6 @@ unifi.on('*.disconnected', data => {
         numClients[data.ssid] = 0;
     }
     wifiInfoPub();
-    mqtt.publish([config.name, 'status', 'wifi', data.ssid, 'event', 'disconnected'].join('/'), {val: data.hostname, mac: data.user, ts: data.time});
     mqtt.publish([config.name, 'status', 'wifi', data.ssid, 'client', data.hostname].join('/'), {val: false, mac: data.user, ts: data.time}, {retain: true});
 });
 
@@ -265,7 +264,6 @@ unifi.on('*.connected', data => {
         numClients[data.ssid] = 1;
     }
     wifiInfoPub();
-    mqtt.publish([config.name, 'status', 'wifi', data.ssid, 'event', 'connected'].join('/'), {val: data.hostname, mac: data.user, ts: data.time});
     mqtt.publish([config.name, 'status', 'wifi', data.ssid, 'client', data.hostname].join('/'), {val: true, mac: data.user, ts: data.time}, {retain: true});
 });
 
