@@ -149,17 +149,10 @@ mqtt.subscribe(config.name + '/status/wifi/+/client/+', (topic, val) => {
         // Retained client status
         clearTimeout(retainedClientsTimeout);
         retainedClientsTimeout = setTimeout(clientsReceived, 2000);
-        try {
-            const {val} = JSON.parse(payload);
-            if (val) {
-                if (retainedClients[parts[3]]) {
-                    retainedClients[parts[3]].push(parts[5]);
-                } else {
-                    retainedClients[parts[3]] = [parts[5]];
-                }
-            }
-        } catch (err) {
-            log.error(topic, payload, err);
+        if (retainedClients[parts[3]]) {
+            retainedClients[parts[3]].push(parts[5]);
+        } else {
+            retainedClients[parts[3]] = [parts[5]];
         }
     }
 });
