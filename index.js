@@ -204,7 +204,7 @@ function getClients() {
             } else {
                 numClients[client.essid] = 1;
             }
-            mqtt.publish(config.name+'/status/wifi/'+client.essid+'/client/'+client.hostname, {val: true, mac: client.mac, ts: (new Date()).getTime()}, {retain: true});
+            mqtt.publish(config.name+'/status/wifi/'+client.essid+'/client/mac-'+client.mac.split(':').join('-'), {val: true, hostname: client.hostname, ts: (new Date()).getTime()}, {retain: true});
             if (retainedClients[client.essid]) {
                 const index = retainedClients[client.essid].indexOf(client.hostname);
                 if (index > -1) {
@@ -213,8 +213,8 @@ function getClients() {
             }
         });
         Object.keys(retainedClients).forEach(essid => {
-            retainedClients[essid].forEach(hostname => {
-                mqtt.publish(config.name+'/status/wifi/'+essid+'/client/'+hostname, {val: false, ts: (new Date()).getTime()}, {retain: true});
+            retainedClients[essid].forEach(mac => {
+                mqtt.publish(config.name+'/status/wifi/'+essid+'/client/'+mac, {val: false, ts: (new Date()).getTime()}, {retain: true});
             });
         });
         wifiInfoPub();
@@ -241,7 +241,7 @@ unifi.on('*.disconnected', data => {
         numClients[data.ssid] = 0;
     }
     wifiInfoPub();
-    mqtt.publish(config.name+'/status/wifi/'+data.ssid+'/client/'+data.hostname, {val: false, mac: data.user, ts: data.time}, {retain: true});
+    mqtt.publish(config.name+'/status/wifi/'+data.ssid+'/client/mac-'+data.user.split(':').join('-'), {val: false, hostname: data.hostname, ts: data.time}, {retain: true});
 });
 
 unifi.on('*.connected', data => {
@@ -252,7 +252,7 @@ unifi.on('*.connected', data => {
         numClients[data.ssid] = 1;
     }
     wifiInfoPub();
-    mqtt.publish(config.name+'/status/wifi/'+data.ssid+'/client/'+data.hostname, {val: true, mac: data.user, ts: data.time}, {retain: true});
+    mqtt.publish(config.name+'/status/wifi/'+data.ssid+'/client/mac-'+data.user.split(':').join('-'), {val: true, hostname: data.hostname, ts: data.time}, {retain: true});
 });
 
 unifi.on('*.roam', data => {
