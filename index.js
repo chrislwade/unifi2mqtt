@@ -109,51 +109,46 @@ const unifi = new Unifi({
     insecure: config.insecure
 });
 
-log.info('mqtt subscribe', config.name + '/set/#');
-mqtt.subscribe(config.name + '/set/#', (topic, val) => {
-    const parts = topic.split('/');
-
-    if (parts[1] === 'set' && parts[2] === 'device' && parts[4] === 'led') {
-        // Set device led override mode
-        if (val === 'on' || val === true || ((typeof val === 'number') && val)) {
-            val = 'on';
-        } else if (val === 'off' || val === false || ((typeof val === 'number') && !val)) {
-            val = 'off';
-        } else {
-            val = 'default';
-        }
-        if (idDevice[parts[3]]) {
-            log.debug('unifi > rest/device/' + idDevice[parts[3]], {led_override: val});
-            unifi.put('rest/device/' + idDevice[parts[3]], {led_override: val}).then(getDevices);
-        } else {
-            log.warn('unknown device', parts[3]);
-        }
-    } else if (parts[1] === 'set' && parts[2] === 'wifi' && parts[4] === 'enabled') {
-        // Set wireless network enable/disable
-        if (idWifi[parts[3]]) {
-            log.debug('unifi > upd/wlanconf/' + idWifi[parts[3]], {enabled: Boolean(val)});
-            unifi.post('upd/wlanconf/' + idWifi[parts[3]], {enabled: Boolean(val)}).then(() => {
-                setTimeout(getWifiNetworks, 5000);
-            });
-        } else {
-            log.warn('unknown wireless network', parts[3]);
-        }
+log.info('mqtt subscribe', config.name+'/set/device/+/led');
+mqtt.subscribe(config.name+'/set/device/+/led', (topic, val, wildcardMatch) => {
+    // Set device led override mode
+    if (val === 'on' || val === true || ((typeof val === 'number') && val)) {
+        val = 'on';
+    } else if (val === 'off' || val === false || ((typeof val === 'number') && !val)) {
+        val = 'off';
+    } else {
+        val = 'default';
+    }
+    if (idDevice[wildcardMatch[0]]) {
+        log.debug('unifi > rest/device/' + idDevice[wildcardMatch[0]], {led_override: val});
+        unifi.put('rest/device/' + idDevice[wildcardMatch[0]], {led_override: val}).then(getDevices);
+    } else {
+        log.warn('unknown device', wildcardMatch[0]);
     }
 });
 
-log.info('mqtt subscribe', config.name + '/status/wifi/+/client/+');
-mqtt.subscribe(config.name + '/status/wifi/+/client/+', (topic, val) => {
-    const parts = topic.split('/');
+log.info('mqtt subscribe', config.name+'/set/wifi/+/enabled');
+mqtt.subscribe(config.name+'/set/wifi/+/enabled', (topic, val, wildcardMatch) => {
+    // Set wireless network enable/disable
+    if (idWifi[wildcardMatch[0]]) {
+        log.debug('unifi > upd/wlanconf/' + idWifi[wildcardMatch[0]], {enabled: Boolean(val)});
+        unifi.post('upd/wlanconf/' + idWifi[wildcardMatch[0]], {enabled: Boolean(val)}).then(() => {
+            setTimeout(getWifiNetworks, 5000);
+        });
+    } else {
+        log.warn('unknown wireless network', wildcardMatch[0]);
+    }
+});
 
-    if (parts[1] === 'status' && parts[2] === 'wifi' && parts[4] === 'client') {
-        // Retained client status
-        clearTimeout(retainedClientsTimeout);
-        retainedClientsTimeout = setTimeout(clientsReceived, 2000);
-        if (retainedClients[parts[3]]) {
-            retainedClients[parts[3]].push(parts[5]);
-        } else {
-            retainedClients[parts[3]] = [parts[5]];
-        }
+log.info('mqtt subscribe', config.name+'/status/wifi/+/client/+');
+mqtt.subscribe(config.name+'/status/wifi/+/client/+', (topic, val, wildcardMatch) => {
+    // Retained client status
+    clearTimeout(retainedClientsTimeout);
+    retainedClientsTimeout = setTimeout(clientsReceived, 2000);
+    if (retainedClients[wildcardMatch[0]]) {
+        retainedClients[wildcardMatch[0]].push(wildcardMatch[1]);
+    } else {
+        retainedClients[wildcardMatch[0]] = [wildcardMatch[1]];
     }
 });
 retainedClientsTimeout = setTimeout(clientsReceived, 2000);
