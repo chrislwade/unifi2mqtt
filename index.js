@@ -160,8 +160,8 @@ retainedClientsTimeout = setTimeout(clientsReceived, 2000);
 
 function clientsReceived() {
     log.info('retained clients received');
-    log.info('mqtt unsubscribe', config.name + '/status/wifi/+/client/+');
-    mqtt.unsubscribe(config.name + '/status/wifi/+/client/+');
+    log.info('mqtt unsubscribe', config.name+'/status/wifi/+/client/+');
+    mqtt.unsubscribe(config.name+'/status/wifi/+/client/+');
     mqttConnected = true;
 }
 
@@ -172,7 +172,7 @@ function getWifiNetworks() {
             res.data.forEach(wifi => {
                 dataWifi[wifi._id] = wifi;
                 idWifi[wifi.name] = wifi._id;
-                mqtt.publish(config.name + '/status/wifi/' + wifi.name + '/enabled', {val: wifi.enabled}, {retain: true});
+                mqtt.publish(config.name+'/status/wifi/'+wifi.name+'/enabled', {val: wifi.enabled}, {retain: true});
             });
             log.debug('unifi got', res.data.length, 'wifi networks');
             resolve();
@@ -187,7 +187,7 @@ function getDevices() {
             res.data.forEach(dev => {
                 dataDevice[dev._id] = dev;
                 idDevice[dev.name] = dev._id;
-                mqtt.publish(config.name + '/status/device/' + dev.name + '/led', {val: dev.led_override}, {retain: true});
+                mqtt.publish(config.name+'/status/device/'+dev.name+'/led', {val: dev.led_override}, {retain: true});
             });
             log.debug('unifi got', res.data.length, 'devices');
             resolve();
