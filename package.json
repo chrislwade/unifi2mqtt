@@ -32,7 +32,7 @@
   "homepage": "https://github.com/hobbyquaker/unifi2mqtt",
   "dependencies": {
     "mqtt-smarthome-connect": "0.0.7",
-    "ubnt-unifi": "^1.0.0",
+    "ubnt-unifi": "github:chrislwade/ubnt-unifi#proxied-controller",
     "yalm": "^4.1.0",
     "yargs": "^14.0.0"
   },

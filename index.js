@@ -10,31 +10,31 @@ const config = require('yargs')
     .describe('verbosity', 'possible values: "error", "warn", "info", "debug"')
     .describe('name', 'instance name. used as mqtt client id and as prefix for connected topic')
     .describe('mqtt-url', 'mqtt broker url. See https://github.com/mqttjs/MQTT.js#connect-using-a-url')
-    .describe('unifi-host', 'unifi hostname or address')
-    .describe('unifi-port', 'unifi port')
+    .describe('unifi-url', 'unifi controller url')
     .describe('unifi-user', 'unifi user')
     .describe('unifi-password', 'unifi password')
     .describe('unifi-site', 'allow ssl connections with invalid certs')
     .describe('insecure', 'unifi site')
+    .describe('proxied', 'unifi controller is proxied under /network/proxy (aka UDM controller)')
     .alias({
         h: 'help',
         n: 'name',
         u: 'mqtt-url',
         v: 'verbosity',
-        a: 'unifi-host',
-        p: 'unifi-port',
+        l: 'unifi-url',
         c: 'unifi-user',
         s: 'unifi-password',
         w: 'unifi-site',
-        k: 'insecure'
+        k: 'insecure',
+        p: 'proxied'
     })
     .default({
         'name': 'unifi',
         'mqtt-url': 'mqtt://127.0.0.1',
-        'unifi-host': '127.0.0.1',
-        'unifi-port': 8443,
+        'unifi-url': 'http://unifi:8443',
         'unifi-user': 'admin',
-        'unifi-site': 'default'
+        'unifi-site': 'default',
+        'proxied': false
     })
     .demand('unifi-password')
     .env()
@@ -99,14 +99,14 @@ function unifiConnect(connected) {
     }
 }
 
-log.info('trying to connect https://' + config.unifiHost + ':' + config.unifiPort);
+log.info('trying to connect ' + config.unifiUrl);
 const unifi = new Unifi({
-    host: config.unifiHost,
-    port: config.unifiPort,
+    url: config.unifiUrl,
     username: config.unifiUser,
     password: config.unifiPassword,
     site: config.unifiSite,
-    insecure: config.insecure
+    insecure: config.insecure,
+    isProxied: config.proxied
 });
 
 log.info('mqtt subscribe', config.name+'/set/device/+/led');
